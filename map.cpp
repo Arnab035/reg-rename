@@ -57,18 +57,18 @@ class CAM
     cam_map_t m_table;
 };
 
-// Stack Overflow : combine-two-numbers-into-one-example-123-and-456-become-123456
-uint32_t combine(int a, int b) {
-   int times = 1;
-   while (times <= b)
-      times *= 10;
-   return (uint32_t)a*times + b;
-} 
+uint32_t getCacheLineNumber(uint32_t cap) {
+    // for l1 cache, max no. of cache blocks = 2^9 = 512.
+    return (((1 << 9) - 1) & (cap >> (9 - 1)));
+}
 
 /* i is the cache line number */
 uint32_t constructCapability(int i) {
     // assuming non-secure class of service
-    return combine(combine(1, i), 31);
+    // and a first-level cache
+    uint32_t access_rights = 0b00011111;
+    uint32_t cache_level = 0b01;
+    return cache_level << 17 | (i << 8 | access_rights);
 }
 
 int main() {
@@ -79,7 +79,7 @@ int main() {
 
     RegClass capRegClass(CapRegClass, "capability", size, debug::CapRegs);
     RegIndex i{0};
-
+    RegIdPtr reg;
     for (i = 0; i < size; i++) {
         cam.add(i, new RegId(capRegClass, i));
     }
@@ -128,20 +128,19 @@ int main() {
              << " is " << regFile.getReg(physReg) << endl;
     }
     // get line number (get cache line number from register)
-    /*
     for (auto i = 0; i < size/4; i++) {
         physReg = rmap.lookup(*cam.find(i));
         cout << "Cache line number mapped to capability value "
              << regFile.getReg(physReg) << " is " 
              << getCacheLineNumber(regFile.getReg(physReg)) << endl;
-    }*/
-    // free CAM (free CAM!)
-    /*
+    }
+    // free architectural registers in CAM
     for (auto i = 0; i < size; i++) {
         reg = cam.find(i);
         if (reg != nullptr)
 	    delete reg;
-    }*/
+    }
     // bye!
+    cout << "\nBye!" << endl;
     return 0;
 }
