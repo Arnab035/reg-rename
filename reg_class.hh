@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
+#include <type_traits>
 #include <cassert>
 
 #include "debug.hh"
